@@ -15,7 +15,6 @@ import { InlinePropertiesCard } from './InlinePropertiesCard.js';
 import { InlineUserDetailsCard } from './InlineUserDetailsCard.js';
 import { OverviewSummary } from './OverviewSummary.js';
 import { UserMemberships } from './UserMemberships.js';
-import { ResetPasswordModal } from './ResetPasswordModal/ResetPasswordModal.js';
 import { DeleteUserModal } from './DeleteUserModal/DeleteUserModal.js';
 import { MoveGroupsModal } from '../GroupsPage/MoveGroupsModal.js';
 import { HistoryTab } from './HistoryTab/HistoryTab.js';
@@ -68,7 +67,6 @@ export function UserDetailPage({ userId }: UserDetailPageProps) {
     // own URL, not a new place to navigate back to.
     navigateReplace(`#/users/${userId}?tab=history&op=${encodeURIComponent(selectedOperationId)}&export=${format}`);
   };
-  const [resetOpen, setResetOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [moveOpen, setMoveOpen] = useState(false);
 
@@ -78,8 +76,8 @@ export function UserDetailPage({ userId }: UserDetailPageProps) {
       if (e.repeat || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
       // Don't hijack the keys while the user is typing in a field.
       if (isTypingTarget(e.target)) return;
-      // Don't navigate away while a modal dialog (edit sheet, reset-password
-      // modal) or a menu is open — those trap focus and own the interaction.
+      // Don't navigate away while a modal dialog or menu is open — those trap
+      // focus and own the interaction.
       if (document.querySelector('[aria-modal="true"], [role="menu"]')) return;
       const key = e.key.toLowerCase();
       if (key !== 'j' && key !== 'k') return;
@@ -165,7 +163,6 @@ export function UserDetailPage({ userId }: UserDetailPageProps) {
               ariaLabel="User actions"
               align="end"
               items={[
-                { kind: 'item', label: 'Reset password', icon: 'Password', onSelect: () => setResetOpen(true) },
                 ...(isAdUser ? [{ kind: 'item' as const, label: 'Move', icon: 'Folder', onSelect: () => setMoveOpen(true) }] : []),
                 {
                   kind: 'item',
@@ -205,7 +202,6 @@ export function UserDetailPage({ userId }: UserDetailPageProps) {
           <OverviewTab
             user={user}
             onSave={(patch) => updateUser(user.id, patch)}
-            onReset={() => setResetOpen(true)}
             onMove={() => setMoveOpen(true)}
             onDelete={() => setDeleteOpen(true)}
           />
@@ -213,7 +209,7 @@ export function UserDetailPage({ userId }: UserDetailPageProps) {
         {tab === 'user-details' && (
           <div className={styles.generalLayout}>
             <InlineUserDetailsCard user={user} onSave={(patch) => updateUser(user.id, patch)} />
-            <ObjectManagementCard isAdUser={isAdUser} onReset={() => setResetOpen(true)} onMove={() => setMoveOpen(true)} onDelete={() => setDeleteOpen(true)} />
+            <ObjectManagementCard isAdUser={isAdUser} onMove={() => setMoveOpen(true)} onDelete={() => setDeleteOpen(true)} />
           </div>
         )}
         {tab === 'memberships' && <UserMemberships user={user} onMembershipChange={(groupMembershipIds) => updateUser(user.id, { groupMembershipIds })} />}
@@ -232,18 +228,6 @@ export function UserDetailPage({ userId }: UserDetailPageProps) {
           </Card>
         )}
       </div>
-
-      <ResetPasswordModal
-        open={resetOpen}
-        onClose={() => setResetOpen(false)}
-        user={{
-          name: user.name,
-          username: user.details.login,
-          displayName: user.details.displayName,
-          location: user.location,
-        }}
-        mode={isAdUser ? 'ad' : 'entra'}
-      />
 
       <DeleteUserModal
         open={deleteOpen}
@@ -275,22 +259,21 @@ export function UserDetailPage({ userId }: UserDetailPageProps) {
 interface OverviewTabProps {
   user: User;
   onSave: (patch: UserPatch) => void;
-  onReset: () => void;
   onMove: () => void;
   onDelete: () => void;
 }
 
-function OverviewTab({ user, onSave, onReset, onMove, onDelete }: OverviewTabProps) {
+function OverviewTab({ user, onSave, onMove, onDelete }: OverviewTabProps) {
   return (
     <div className={styles.generalLayout}>
       <InlinePropertiesCard user={user} onSave={onSave} />
 
-      <ObjectManagementCard isAdUser={isActiveDirectoryLocation(user.location)} onReset={onReset} onMove={onMove} onDelete={onDelete} />
+      <ObjectManagementCard isAdUser={isActiveDirectoryLocation(user.location)} onMove={onMove} onDelete={onDelete} />
     </div>
   );
 }
 
-function ObjectManagementCard({ isAdUser, onReset, onMove, onDelete }: { isAdUser: boolean; onReset: () => void; onMove: () => void; onDelete: () => void }) {
+function ObjectManagementCard({ isAdUser, onMove, onDelete }: { isAdUser: boolean; onMove: () => void; onDelete: () => void }) {
   return (
     <Card
       className={styles.managementCard}
@@ -301,7 +284,6 @@ function ObjectManagementCard({ isAdUser, onReset, onMove, onDelete }: { isAdUse
         <div className={styles.managementGroup}>
           <LinkList
             links={[
-              { label: 'Reset password', onClick: onReset },
               { label: 'Reset Entra ID MFA', disabled: true },
               { label: 'Revoke sessions', disabled: true },
             ]}

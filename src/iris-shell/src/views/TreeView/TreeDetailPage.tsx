@@ -15,7 +15,6 @@ import { Link, type LinkTone } from '../../components/Link/Link.js';
 import { Tooltip } from '../../components/Tooltip/Tooltip.js';
 import { Menu } from '../../components/Menu/Menu.js';
 import type { Crumb } from '../../components/AppHeader/AppHeader.js';
-import { ResetPasswordModal } from '../UserDetailPage/ResetPasswordModal/ResetPasswordModal.js';
 import { DeleteUserModal } from '../UserDetailPage/DeleteUserModal/DeleteUserModal.js';
 import { UserMemberships } from '../UserDetailPage/UserMemberships.js';
 import { HistoryTab } from '../UserDetailPage/HistoryTab/HistoryTab.js';
@@ -38,7 +37,6 @@ export function TreeDetailPage({ nodeId, objectId }: TreeDetailPageProps) {
   const route = useRoute();
 
   const [tab, setTab] = useState(() => (route.name === 'treeDetail' ? route.params.tab ?? PRIMARY_TAB : PRIMARY_TAB));
-  const [resetOpen, setResetOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   // Reset to the primary tab (or the URL's tab, e.g. for a fresh deep link)
@@ -121,8 +119,6 @@ export function TreeDetailPage({ nodeId, objectId }: TreeDetailPageProps) {
   const meta = OBJECT_TYPE_META[object.type];
   const pathTail = getPath(nodeId).slice(-2).map((n) => n.name).join(' / ');
   const tabs = tabsForType(object.type);
-  const canReset = object.type === 'user' || object.type === 'contact';
-  const isAdNode = getPath(nodeId).some((crumb) => /active director|o1d|o2d|ad-\d/i.test(crumb.name));
 
   return (
     <AppShell breadcrumb={breadcrumb}>
@@ -161,9 +157,6 @@ export function TreeDetailPage({ nodeId, objectId }: TreeDetailPageProps) {
               ariaLabel="Object actions"
               align="end"
               items={[
-                ...(canReset
-                  ? ([{ kind: 'item', label: 'Reset password', icon: 'Password', onSelect: () => setResetOpen(true) }] as const)
-                  : []),
                 {
                   kind: 'item',
                   label: isFavorite(object.id) ? 'Remove from favourites' : 'Add to favourites',
@@ -200,8 +193,6 @@ export function TreeDetailPage({ nodeId, objectId }: TreeDetailPageProps) {
         {tab === PRIMARY_TAB ? (
           <GeneralTab
             object={object}
-            canReset={canReset}
-            onReset={() => setResetOpen(true)}
             onDelete={() => setDeleteOpen(true)}
           />
         ) : tab === 'memberships' && (object.type === 'user' || object.type === 'contact') ? (
@@ -223,19 +214,6 @@ export function TreeDetailPage({ nodeId, objectId }: TreeDetailPageProps) {
         )}
       </div>
 
-      {resetOpen && (
-        <ResetPasswordModal
-          open
-          onClose={() => setResetOpen(false)}
-          user={{
-            name: object.name,
-            username: object.details.userPrincipalName,
-            displayName: object.details.displayName,
-            location: object.details.location,
-          }}
-          mode={isAdNode ? 'ad' : 'entra'}
-        />
-      )}
       {deleteOpen && (
         <DeleteUserModal open onClose={() => setDeleteOpen(false)} user={{ name: object.name }} />
       )}
@@ -249,12 +227,10 @@ export function TreeDetailPage({ nodeId, objectId }: TreeDetailPageProps) {
 
 interface GeneralTabProps {
   object: DirectoryObject;
-  canReset: boolean;
-  onReset: () => void;
   onDelete: () => void;
 }
 
-function GeneralTab({ object, canReset, onReset, onDelete }: GeneralTabProps) {
+function GeneralTab({ object, onDelete }: GeneralTabProps) {
   const d = object.details;
   const isUser = object.type === 'user' || object.type === 'contact';
 
@@ -297,7 +273,6 @@ function GeneralTab({ object, canReset, onReset, onDelete }: GeneralTabProps) {
         <div className={styles.linkGroups}>
           <LinkList
             links={[
-              { label: 'Reset password', onClick: onReset, disabled: !canReset },
               { label: 'Reset Entra ID MFA', disabled: true },
               { label: 'Revoke sessions', disabled: true },
             ]}

@@ -3,7 +3,6 @@ import { Button } from '../../components/Button/Button.js';
 import { FormField } from '../../components/FormField/FormField.js';
 import { Modal } from '../../components/Modal/Modal.js';
 import { TextInput } from '../../components/TextInput/TextInput.js';
-import { Stepper } from '../../components/Stepper/Stepper.js';
 import { Icon } from '../../components/Icon/Icon.js';
 import { useDirectory } from '../../lib/directoryStore.js';
 import { MoveGroupsModal } from '../GroupsPage/MoveGroupsModal.js';
@@ -38,8 +37,6 @@ interface Draft {
   location: string;
   suffix: string;
   preWindowsLogonName: string;
-  password: string;
-  confirmPassword: string;
 }
 
 const EMPTY_DRAFT: Draft = {
@@ -53,23 +50,12 @@ const EMPTY_DRAFT: Draft = {
   location: '',
   suffix: '@Entra1',
   preWindowsLogonName: '',
-  password: '',
-  confirmPassword: '',
 };
 
 export function NewUserModal({ open, onClose, objectKind, directories, onCreate }: NewUserModalProps) {
   const { getPath } = useDirectory();
   const [draft, setDraft] = useState<Draft>(() => ({ ...EMPTY_DRAFT, directory: directories[0] ?? 'Entra 1' }));
-  const [step, setStep] = useState<1 | 2>(1);
-  const [furthestStep, setFurthestStep] = useState<1 | 2>(1);
   const [folderPickerOpen, setFolderPickerOpen] = useState(false);
-  const [accountOptions, setAccountOptions] = useState({
-    changePassword: true,
-    preventPasswordChange: false,
-    passwordNeverExpires: false,
-    disabled: false,
-    openProperties: false,
-  });
 
   const setField = (field: keyof Draft) => (event: ChangeEvent<HTMLInputElement>) => {
     setDraft((current) => ({ ...current, [field]: event.target.value }));
@@ -86,12 +72,8 @@ export function NewUserModal({ open, onClose, objectKind, directories, onCreate 
     if (objectKind !== 'ad') return baseValid;
     return baseValid && Boolean(draft.preWindowsLogonName.trim()) && Boolean(draft.location.trim());
   }, [draft, objectKind]);
-  const canCreate = Boolean(draft.password && draft.password === draft.confirmPassword);
-
   const close = () => {
     setDraft({ ...EMPTY_DRAFT, directory: directories[0] ?? 'Entra 1' });
-    setStep(1);
-    setFurthestStep(1);
     onClose();
   };
 
@@ -107,16 +89,10 @@ export function NewUserModal({ open, onClose, objectKind, directories, onCreate 
       bodyClassName={styles.body}
       footer={
         <div className={styles.footerContent}>
-          <span className={styles.step}>Step {step} of 2</span>
           <Button
             variant="primary"
-            disabled={step === 1 ? !canContinue : !canCreate}
+            disabled={!canContinue}
             onClick={() => {
-              if (step === 1) {
-                setStep(2);
-                setFurthestStep(2);
-                return;
-              }
               onCreate({
                 firstName: draft.firstName.trim(),
                 lastName: draft.lastName.trim(),
@@ -126,30 +102,18 @@ export function NewUserModal({ open, onClose, objectKind, directories, onCreate 
                 userLogonName: draft.userLogonName.trim(),
                 directory: draft.directory,
                 location: draft.location,
-                inactive: accountOptions.disabled,
+                inactive: false,
               });
               close();
             }}
           >
-            {step === 1 ? 'Save and continue' : 'Create object'}
+            Create object
           </Button>
         </div>
       }
     >
-      <Stepper
-        items={[{ label: 'General' }, { label: 'Account' }]}
-        activeIndex={step - 1}
-        completedThrough={furthestStep - 1}
-        onStepChange={(index) => {
-          const nextStep = (index + 1) as 1 | 2;
-          setStep(nextStep);
-          setFurthestStep((current) => Math.max(current, nextStep) as 1 | 2);
-        }}
-        ariaLabel="New user steps"
-      />
       <div className={styles.content}>
         <div className={styles.form}>
-        {step === 1 ? <>
           <div className={styles.twoColumn}>
             <FormField label="First name" required>
               <TextInput value={draft.firstName} onChange={setField('firstName')} />
@@ -190,24 +154,6 @@ export function NewUserModal({ open, onClose, objectKind, directories, onCreate 
               <TextInput value={draft.preWindowsLogonName} onChange={setField('preWindowsLogonName')} />
             </FormField>
           )}
-        </> : <>
-          <h3 className={styles.sectionTitle}>Account</h3>
-          <p className={styles.sectionHelp}>Manage logon information and settings.</p>
-          <div className={styles.accountField}>
-            <FormField label="Password" required>
-              <TextInput type="password" placeholder="Input text" value={draft.password} onChange={setField('password')} iconTrail="Eye" />
-            </FormField>
-            <FormField label="Confirm password" required>
-              <TextInput type="password" placeholder="Input text" value={draft.confirmPassword} onChange={setField('confirmPassword')} iconTrail="Eye" />
-            </FormField>
-          </div>
-          <span className={styles.optionsLabel}>Account options:</span>
-          <label><input type="checkbox" checked={accountOptions.changePassword} onChange={(e) => setAccountOptions((o) => ({ ...o, changePassword: e.target.checked }))} /> User must change password at next login</label>
-          <label><input type="checkbox" checked={accountOptions.preventPasswordChange} onChange={(e) => setAccountOptions((o) => ({ ...o, preventPasswordChange: e.target.checked }))} /> User cannot change password</label>
-          <label><input type="checkbox" checked={accountOptions.passwordNeverExpires} onChange={(e) => setAccountOptions((o) => ({ ...o, passwordNeverExpires: e.target.checked }))} /> Password never expires</label>
-          <label><input type="checkbox" checked={accountOptions.disabled} onChange={(e) => setAccountOptions((o) => ({ ...o, disabled: e.target.checked }))} /> Account is inactive</label>
-          <label><input type="checkbox" checked={accountOptions.openProperties} onChange={(e) => setAccountOptions((o) => ({ ...o, openProperties: e.target.checked }))} /> Open properties for this object when I click Finish</label>
-        </>}
         </div>
         <aside className={styles.help}>
           <h3>Add new object</h3>

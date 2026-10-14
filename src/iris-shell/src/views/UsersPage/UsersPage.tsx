@@ -19,7 +19,6 @@ import { ContentHeader } from '../../components/ContentHeader/ContentHeader.js';
 import { DataTable, type DataTableColumn, type RowKey } from '../../components/DataTable/DataTable.js';
 import { Pagination } from '../../components/Pagination/Pagination.js';
 import { ActionBar } from '../../components/ActionBar/ActionBar.js';
-import { ResetPasswordModal } from '../UserDetailPage/ResetPasswordModal/ResetPasswordModal.js';
 import { DeleteUserModal } from '../UserDetailPage/DeleteUserModal/DeleteUserModal.js';
 import { NewUserModal, type NewUserModalProps } from './NewUserModal.js';
 import { SaveViewModal } from './SaveViewModal.js';
@@ -270,8 +269,6 @@ export function UsersPage() {
 
   const filterCount = (query.trim() ? 1 : 0) + appliedFilters.filter((f) => f.value).length;
 
-  // Which user (if any) has a row-action modal open. `null` = closed.
-  const [resetUser, setResetUser] = useState<User | null>(null);
   const [deleteUser, setDeleteUser] = useState<User | null>(null);
 
   const rows = useMemo<User[]>(() => {
@@ -309,10 +306,8 @@ export function UsersPage() {
     setPage(Math.floor(firstVisibleIndex / nextSize) + 1);
   };
 
-  // Quick-action menu shown from each row's trailing "more" button. Reset
-  // password and Delete open their respective modals; the rest are PoC no-ops.
+  // Quick-action menu shown from each row's trailing "more" button.
   const rowMenuItems = (u: User): MenuEntry[] => [
-    { kind: 'item', label: 'Reset password', icon: 'Password', onSelect: () => setResetUser(u) },
     { kind: 'item', label: 'Copy', icon: 'Copy' },
     { kind: 'item', label: 'Move', icon: 'Folder' },
     { kind: 'item', label: 'Properties', icon: 'UserList', onSelect: () => navigate(`#/users/${u.id}?tab=general`) },
@@ -572,9 +567,6 @@ export function UsersPage() {
         ]}
       />
 
-      {resetUser && (
-        <ResetPasswordModal open onClose={() => setResetUser(null)} user={resetUser} />
-      )}
       {deleteUser && (
         <DeleteUserModal open onClose={() => setDeleteUser(null)} user={deleteUser} />
       )}

@@ -17,7 +17,6 @@ import { DataTable, type DataTableColumn, type RowKey } from '../../components/D
 import { Pagination } from '../../components/Pagination/Pagination.js';
 import { ActionBar } from '../../components/ActionBar/ActionBar.js';
 import type { Crumb } from '../../components/AppHeader/AppHeader.js';
-import { ResetPasswordModal } from '../UserDetailPage/ResetPasswordModal/ResetPasswordModal.js';
 import { DeleteUserModal } from '../UserDetailPage/DeleteUserModal/DeleteUserModal.js';
 import { MoveGroupsModal } from '../GroupsPage/MoveGroupsModal.js';
 import { NewUserModal, type NewUserModalProps } from '../UsersPage/NewUserModal.js';
@@ -53,7 +52,6 @@ export function TreeListPage({ nodeId }: TreeListPageProps) {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0]);
   const [selected, setSelected] = useState<Set<RowKey>>(() => new Set());
-  const [resetTarget, setResetTarget] = useState<DirectoryObject | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DirectoryObject | null>(null);
   const [moveTargets, setMoveTargets] = useState<DirectoryObject[]>([]);
   const [createKind, setCreateKind] = useState<'user' | 'group' | null>(null);
@@ -222,12 +220,8 @@ export function TreeListPage({ nodeId }: TreeListPageProps) {
   };
 
   const rowMenuItems = (o: DirectoryObject): MenuEntry[] => {
-    const canReset = o.type === 'user' || o.type === 'contact';
     const fav = isFavorite(o.id);
     return [
-      ...(canReset
-                  ? ([{ kind: 'item', label: 'Reset password', icon: 'Password', onSelect: () => setResetTarget(o) }] as MenuEntry[])
-        : []),
       { kind: 'item', label: 'Copy', icon: 'Copy' },
       ...(isAdNode && !o.isContainer ? [{ kind: 'item' as const, label: 'Move', icon: 'Folder', onSelect: () => setMoveTargets([o]) }] : []),
       { kind: 'item', label: 'Properties', icon: 'UserList' },
@@ -477,9 +471,6 @@ export function TreeListPage({ nodeId }: TreeListPageProps) {
       {createKind === 'user' && <NewUserModal open objectKind="ad" directories={[nodeName ?? 'AD Folder']} onClose={() => setCreateKind(null)} onCreate={createUser} />}
       {createKind === 'group' && <NewGroupModal open directories={[nodeName ?? 'AD Folder']} onClose={() => setCreateKind(null)} onCreate={createGroup} />}
 
-      {resetTarget && (
-        <ResetPasswordModal open onClose={() => setResetTarget(null)} user={{ name: resetTarget.name }} />
-      )}
       {deleteTarget && (
         <DeleteUserModal open onClose={() => setDeleteTarget(null)} user={{ name: deleteTarget.name }} />
       )}
