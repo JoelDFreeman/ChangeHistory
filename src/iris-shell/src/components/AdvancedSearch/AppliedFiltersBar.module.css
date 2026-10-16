@@ -43,6 +43,10 @@
   cursor: pointer;
 }
 
+.filterCount {
+  font-family: var(--oi-font-family-code);
+}
+
 .clear {
   color: var(--oi-content-color-secondary);
 }

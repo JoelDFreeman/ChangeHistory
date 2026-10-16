@@ -15,6 +15,7 @@
   border-radius: 2px;
   background: var(--oi-button-background-primary);
   color: var(--oi-content-color-constant);
+  font-family: var(--oi-font-family-code);
   font-size: 10px;
   font-weight: 600;
   line-height: 14px;

@@ -10,7 +10,7 @@ export function AppliedFiltersBar() {
       <div className={styles.chips}>
         {appliedFilters.map((filter) => <span className={styles.chip} key={filter.id}>{filter.fieldId} {filter.operator ?? 'is'} {filter.value ?? '*'}</span>)}
       </div>
-      <button type="button" className={styles.edit} onClick={openSearch}><Icon name="FunnelSimple" size="16px" />{appliedFilters.length} filter{appliedFilters.length === 1 ? '' : 's'}</button>
+      <button type="button" className={styles.edit} onClick={openSearch}><Icon name="FunnelSimple" size="16px" /><span className={styles.filterCount}>{appliedFilters.length}</span> filter{appliedFilters.length === 1 ? '' : 's'}</button>
       <button type="button" className={styles.clear} onClick={clearFilters} aria-label="Clear applied filters"><Icon name="X" size="14px" /></button>
     </div>
   );

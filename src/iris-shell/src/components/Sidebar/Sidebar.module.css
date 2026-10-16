@@ -153,18 +153,18 @@
    (`.filterCountBadge` in HistoryTab.module.css) for a consistent "N active
    filters" treatment across the app. */
 .favRowBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 16px;
-  height: 16px;
-  padding-inline: 3px;
-  border-radius: var(--oi-border-radius-default);
+  display: grid;
+  place-items: center;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: 2px;
   background-color: var(--oi-button-background-primary);
   color: var(--oi-content-color-constant);
+  font-family: var(--oi-font-family-code);
   font-size: 10px;
-  line-height: 1;
-  font-weight: var(--oi-text-caption-font-weight);
+  font-weight: 600;
+  line-height: 14px;
 }
 
 /* Inline rename field — same box as .favRowMain's text so the row's size
